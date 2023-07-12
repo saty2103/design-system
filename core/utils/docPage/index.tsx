@@ -159,8 +159,9 @@ const StoryComp = (props: {
   noSandbox: boolean;
   isEmbed: boolean;
   imports: string[];
+  codesandbox: JSX.Element;
 }) => {
-  const { customCode, noHtml, noSandbox } = props;
+  const { customCode, noHtml, noSandbox, codesandbox } = props;
   const { story } = getStory();
   // const comp = sp.storySource.source;
   const comp = story.originalStoryFn();
@@ -330,6 +331,7 @@ const StoryComp = (props: {
             </Card>
           </Column>
         )}
+        {!isExpanded && codesandbox}
       </Row>
     </LiveProvider>
   );
@@ -338,6 +340,7 @@ const StoryComp = (props: {
 export const docPage = () => {
   const { story, storyId } = getStory();
   const sp = story.parameters;
+  console.log('story parameters --------->', sp);
   const isEmbed = window.location.search.includes('embed=min');
   const isEmbedWithProp = window.location.search.includes('embed=prop');
   const isEmbedOnlyProp = window.location.search.includes('embed=prop-table');
@@ -353,6 +356,7 @@ export const docPage = () => {
     noSandbox,
     imports,
     a11yProps,
+    codesandbox,
   } = sp.docs.docPage || {};
   const { component: { displayName = '' } = {} } = story;
   const pageClassnames = classNames({
@@ -361,46 +365,57 @@ export const docPage = () => {
   });
   const docPageTitle: string = title || displayName;
 
+  const height = '500px';
+
   return (
-    <div className={pageClassnames}>
-      {!isEmbed && !isEmbedWithProp && (
-        <>
-          <Heading size="xl" className="mb-5">
-            {docPageTitle}
-          </Heading>
-          <Description>{description}</Description>
-        </>
-      )}
+    <>
+      <div className={pageClassnames}>
+        {!isEmbed && !isEmbedWithProp && (
+          <>
+            <Heading size="xl" className="mb-5">
+              {docPageTitle}
+            </Heading>
+            <Description>{description}</Description>
+          </>
+        )}
 
-      {!noStory && !isEmbedOnlyProp && (
-        <StoryComp
-          key={storyId}
-          customCode={customCode}
-          noHtml={noHtml}
-          noSandbox={noSandbox}
-          imports={imports}
-          isEmbed={isEmbed || isEmbedWithProp}
-        />
-      )}
+        {!noStory && !isEmbedOnlyProp && !codesandbox && (
+          <StoryComp
+            key={storyId}
+            customCode={customCode}
+            noHtml={noHtml}
+            noSandbox={noSandbox}
+            imports={imports}
+            isEmbed={isEmbed || isEmbedWithProp}
+            codesandbox={codesandbox}
+          />
+        )}
 
-      {a11yProps && (
-        <>
-          <br />
-          <br />
-          <Heading appearance="subtle">Accessibility</Heading>
-          <Description>{a11yProps}</Description>
-        </>
-      )}
+        {a11yProps && !codesandbox && (
+          <>
+            <br />
+            <br />
+            <Heading appearance="subtle">Accessibility</Heading>
+            <Description>{a11yProps}</Description>
+          </>
+        )}
 
-      {!noProps && (
-        <>
-          <br />
-          <br />
-          <Heading appearance="subtle">Prop table</Heading>
-          <ArgsTable {...propsAttr} />
-        </>
-      )}
-    </div>
+        {!noProps && !codesandbox && (
+          <>
+            <br />
+            <br />
+            <Heading appearance="subtle">Prop table</Heading>
+            <ArgsTable {...propsAttr} />
+          </>
+        )}
+
+        {!!codesandbox && (
+          <div className="border-right" style={{ borderRadius: '4px', height: height }}>
+            {codesandbox}
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
